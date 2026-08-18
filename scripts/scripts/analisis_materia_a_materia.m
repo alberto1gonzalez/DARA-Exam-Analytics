@@ -1,52 +1,85 @@
 clear
 clc
-%------analisis_materia_a_materia.m---
-%--------------------------------------
-% % PREVIAMENTE SE DEBE VERIFICAR QUE LA FASE 0 ESTÁ COMPLETA
 
-% FASE 0. Datos de partida
-% % Fichero maestro
-% % listadoNotasProvisionales_070626_C4.xlsx
-% % Antes de ejecutar nada, verifica que existen las columnas:
-% % CENTRO
-% % TIPO
-% % MATERIA
-% % TIENEEXAMEN
-% % CALIFICACION
-% % COORDENADA_X
-% % COORDENADA_Y
-% % IMPORTANTE: Si cambian los nombres, todos los scripts SIGUIENTES posteriores deberán ajustarse.
+%% =====================================================
+%% analisis_materia_a_materia.m
+%%
+%% PURPOSE
+%% Splits a master Excel file into independent Excel
+%% files, one for each subject.
+%%
+%% INPUT
+%% Excel workbook containing at least:
+%%   CENTRO
+%%   TIPO
+%%   MATERIA
+%%   TIENEEXAMEN
+%%   CALIFICACION
+%%
+%% OPTIONAL FIELDS
+%%   COORDENADA_X
+%%   COORDENADA_Y
+%%
+%% OUTPUT
+%% MATERIAS\
+%%   BIO\
+%%   FIS\
+%%   MAT\
+%%   ...
+%%
+%% Each folder contains an Excel file with all records
+%% corresponding to a single subject.
+%%
+%% =====================================================
 
-% UNA VEZ VERIFICADO FASE0 SE PASA A FASE 1.  
-% 
-% FASE 1. Separación por materias
-%SCRIPT:analisis_materia_a_materia.m
-% % Entrada
-% % listadoNotasProvisionales_070626_C4.xlsx
-% % Salida esperada
-    % % MATERIAS\
-    % % ├── BIOLOGIA\
-    % % ├── FISICA\
-    % % ├── MATEMATICAS\
-    % % ├── QUIMICA\
-    % % └── ...
-% % Dentro de cada carpeta:
-% % Excel de una única materia
-% % Qué revisar
-% % Comprobar que:
-% % Número de carpetas = número de materias
-% % y que cada materia contiene su Excel.
-% % Si aquí algo falla, todo lo demás fallará.
+%% =====================================================
+%% INPUT FILE
+%% =====================================================
 
-% file = 'CARRACUCASIM_10_06_26_listadoTotal_PAU_ord_2026_6_recupera2.xls';
-file = 'listadoNotasProvisionales_070626_C4.xlsx';
+file = 'ejemplo_datos_1000_registros.xlsx';
 
-% T = readtable(file);
+%% =====================================================
+%% READ EXCEL
+%% =====================================================
 
-[num,txt,raw] = xlsread(file);
-headers = string(raw(2,:)); % nombres de campos
-datos = raw(3:end,:); % datos
-T = cell2table(datos,'VariableNames',matlab.lang.makeValidName(headers));
+[~,~,raw] = xlsread(file);
+
+headers = string(raw(2,:));
+datos   = raw(3:end,:);
+
+headers = matlab.lang.makeValidName(headers);
+
+T = cell2table( ...
+    datos,...
+    'VariableNames',cellstr(headers));
+
+%% =====================================================
+%% REQUIRED FIELDS
+%% =====================================================
+
+camposNecesarios = { ...
+    'TIPO',...
+    'MATERIA',...
+    'TIENEEXAMEN',...
+    'CALIFICACION'};
+
+for k = 1:numel(camposNecesarios)
+
+    if ~ismember( ...
+            camposNecesarios{k}, ...
+            T.Properties.VariableNames)
+
+        error( ...
+            'Missing required field: %s', ...
+            camposNecesarios{k})
+
+    end
+
+end
+
+%% =====================================================
+%% OUTPUT FOLDER
+%% =====================================================
 
 outFolder = 'MATERIAS';
 
@@ -54,7 +87,20 @@ if ~exist(outFolder,'dir')
     mkdir(outFolder)
 end
 
+%% =====================================================
+%% SUBJECT LIST
+%% =====================================================
+
 materias = unique(string(T.TIPO));
+
+fprintf('\n')
+fprintf('========================================\n')
+fprintf('SUBJECTS FOUND: %d\n',length(materias))
+fprintf('========================================\n')
+
+%% =====================================================
+%% SPLIT DATASET
+%% =====================================================
 
 for i = 1:length(materias)
 
@@ -64,9 +110,12 @@ for i = 1:length(materias)
 
     Tmat = T(idx,:);
 
-    nombreMateria = matlab.lang.makeValidName(char(materia));
+    nombreMateria = matlab.lang.makeValidName( ...
+        char(materia));
 
-    carpetaMateria = fullfile(outFolder,nombreMateria);
+    carpetaMateria = fullfile( ...
+        outFolder,...
+        nombreMateria);
 
     if ~exist(carpetaMateria,'dir')
         mkdir(carpetaMateria)
@@ -74,13 +123,21 @@ for i = 1:length(materias)
 
     ficheroSalida = fullfile( ...
         carpetaMateria,...
-        ['listadoNotasProvisionales_070626_C4' ...
-        nombreMateria '.xlsx']);
+        [nombreMateria '.xlsx']);
 
     writetable(Tmat,ficheroSalida);
 
-    fprintf('Generado: %s\n',ficheroSalida)
+    fprintf('Generated: %s\n',ficheroSalida)
 
 end
 
-disp('FINALIZADO')
+%% =====================================================
+%% FINISHED
+%% =====================================================
+
+fprintf('\n')
+fprintf('========================================\n')
+fprintf('PROCESS COMPLETED\n')
+fprintf('========================================\n')
+fprintf('Output folder: %s\n',outFolder)
+fprintf('\n')
