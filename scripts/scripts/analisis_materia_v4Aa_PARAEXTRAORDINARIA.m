@@ -1,49 +1,48 @@
-%% =====================================================
-%% analisis_materia_v4Aa_PARAEXTRAORDINARIA.m
-%% =====================================================
-
 clear
 clc
 close all
 
 import mlreportgen.dom.*
 
-% % FASE 5. Análisis global por materias
-% % Script: analisis_materia_v4Aa_PARAEXTRAORDINARIA.m
-% % Entrada
-% % listadoNotasProvisionales_070626_C4.xlsx
-% % Salidas
-    % % resultados_extraordinaria\
-    % % ├── INFORME_GLOBAL.docx
-    % % ├── hist_*.png
-% % Qué revisar
-% % Que exista
-% % INFORME_GLOBAL.docx
-% % Que existan
-% % Plain Text
-% % hist_*.png
-% % para todas las materias.
-% % Éstos serán los histogramas que incorporará el informe final.
-
+%% =====================================================
+%% analisis_materia_v4Aa_PARAEXTRAORDINARIA.m
+%%
+%% PURPOSE
+%% Global statistical analysis by subject.
+%%
+%% INPUT
+%% Excel workbook containing:
+%%   CENTRO
+%%   TIPO
+%%   MATERIA
+%%   TIENEEXAMEN
+%%   CALIFICACION
+%%
+%% OUTPUT
+%% resultados_extraordinaria\
+%%   INFORME_GLOBAL.docx
+%%   hist_*.png
+%%
+%% =====================================================
 
 %% =====================================================
-%% RUTA
+%% INPUT FILE
 %% =====================================================
 
-cd('C:\Users\gonzalea\OneDrive - UNICAN\PAU\2026\extraordinaria')
+file = 'ejemplo_datos_1000_registros.xlsx';
 
-file = 'listadoNotasProvisionales_070626_C4.xlsx';
+%% =====================================================
+%% OUTPUT FOLDER
+%% =====================================================
 
-[~,nombreCarpeta] = fileparts(pwd);
-
-outFolder = ['resultados_' nombreCarpeta];
+outFolder = 'resultados_extraordinaria';
 
 if ~exist(outFolder,'dir')
     mkdir(outFolder)
 end
 
 %% =====================================================
-%% LECTURA ROBUSTA DEL EXCEL
+%% READ EXCEL
 %% =====================================================
 
 [~,~,raw] = xlsread(file);
@@ -58,21 +57,27 @@ T = cell2table( ...
     'VariableNames',cellstr(headers));
 
 %% =====================================================
-%% COMPROBAR CAMPOS
+%% REQUIRED FIELDS
 %% =====================================================
 
-campos = string(T.Properties.VariableNames);
+camposNecesarios = { ...
+    'TIPO',...
+    'MATERIA',...
+    'CALIFICACION',...
+    'TIENEEXAMEN'};
 
-if ~any(strcmp(campos,'TIPO'))
-    error('No existe la columna TIPO')
-end
+for k = 1:numel(camposNecesarios)
 
-if ~any(strcmp(campos,'CALIFICACION'))
-    error('No existe la columna CALIFICACION')
-end
+    if ~ismember( ...
+            camposNecesarios{k}, ...
+            T.Properties.VariableNames)
 
-if ~any(strcmp(campos,'TIENEEXAMEN'))
-    error('No existe la columna TIENEEXAMEN')
+        error( ...
+            'Missing required field: %s', ...
+            camposNecesarios{k})
+
+    end
+
 end
 
 %% =====================================================
@@ -81,56 +86,56 @@ end
 
 codigo = string(T.TIPO);
 
-if any(strcmp(campos,'MATERIA'))
+nombre = string(T.MATERIA);
 
-    nombre = string(T.MATERIA);
-    materia = codigo + " - " + nombre;
+materia = codigo + " - " + nombre;
 
-else
+nota = str2double( ...
+    string(T.CALIFICACION));
 
-    materia = codigo;
-
-end
-
-nota = str2double(string(T.CALIFICACION));
 examen = string(T.TIENEEXAMEN);
 
 %% =====================================================
-%% POBLACION
+%% POPULATION
 %% =====================================================
 
 total_raw = size(datos,1);
 
 validos = sum(~isnan(nota));
-realizados = sum(strcmpi(strtrim(examen),'SI'));
+
+realizados = sum( ...
+    strcmpi(strtrim(examen),'SI'));
+
 en_blanco = total_raw - validos;
 
 %% =====================================================
-%% FILTRO
+%% FILTER
 %% =====================================================
 
 idx = ...
     ~isnan(nota) & ...
-    nota>=0 & ...
-    nota<=10 & ...
+    nota >= 0 & ...
+    nota <= 10 & ...
     strcmpi(strtrim(examen),'SI');
 
 materia = materia(idx);
 nota    = nota(idx);
 
-fprintf('\nRegistros válidos: %d\n',length(nota))
+fprintf('\nValid records: %d\n',length(nota))
 
 %% =====================================================
-%% MATERIAS
+%% SUBJECTS
 %% =====================================================
 
 materiasUnicas = unique(materia);
 
 %% =====================================================
-%% INFORME GLOBAL
+%% GLOBAL REPORT
 %% =====================================================
 
-finalFile = fullfile(outFolder,'INFORME_GLOBAL.docx');
+finalFile = fullfile( ...
+    outFolder,...
+    'INFORME_GLOBAL.docx');
 
 if isfile(finalFile)
     delete(finalFile)
@@ -140,31 +145,33 @@ docG = Document(finalFile,'docx');
 
 append(docG,...
     Heading(1,...
-    'INFORME GLOBAL POR MATERIAS'));
+    'GLOBAL SUBJECT REPORT'));
 
 %% =====================================================
-%% POBLACION GLOBAL
+%% GLOBAL POPULATION
 %% =====================================================
 
-append(docG,Heading(2,'Población global'));
+append(docG,...
+    Heading(2,...
+    'Global population'));
 
 append(docG,...
     Paragraph(sprintf( ...
-    'Total registros: %d', ...
+    'Total records: %d', ...
     total_raw)));
 
 append(docG,...
     Paragraph(sprintf( ...
-    'Realizados: %d', ...
+    'Examinations taken: %d', ...
     realizados)));
 
 append(docG,...
     Paragraph(sprintf( ...
-    'En blanco: %d', ...
+    'Blank records: %d', ...
     en_blanco)));
 
 %% =====================================================
-%% BUCLE MATERIAS
+%% SUBJECT LOOP
 %% =====================================================
 
 for m = 1:length(materiasUnicas)
@@ -182,7 +189,7 @@ for m = 1:length(materiasUnicas)
     total = length(n);
 
     %% ===============================================
-    %% ESTADISTICOS
+    %% STATISTICS
     %% ===============================================
 
     media   = mean(n);
@@ -196,25 +203,35 @@ for m = 1:length(materiasUnicas)
     end
 
     %% ===============================================
-    %% INTERPRETACION
+    %% INTERPRETATION
     %% ===============================================
 
     if media < 5
-        nivel_medio = 'bajo';
+
+        nivel_medio = 'Low';
+
     elseif media < 7
-        nivel_medio = 'medio';
+
+        nivel_medio = 'Medium';
+
     else
-        nivel_medio = 'alto';
+
+        nivel_medio = 'High';
+
     end
 
     if stdv < 1.5
-        dispersion_txt = 'homogénea';
+
+        dispersion_txt = 'Homogeneous';
+
     else
-        dispersion_txt = 'heterogénea';
+
+        dispersion_txt = 'Heterogeneous';
+
     end
 
     %% ===============================================
-    %% DISTRIBUCION
+    %% DISTRIBUTION
     %% ===============================================
 
     n0   = sum(n==0);
@@ -232,7 +249,7 @@ for m = 1:length(materiasUnicas)
     p10  = 100*n10/total;
 
     %% ===============================================
-    %% INDICE COMPUESTO
+    %% COMPOSITE INDEX
     %% ===============================================
 
     indice = ...
@@ -242,10 +259,11 @@ for m = 1:length(materiasUnicas)
         - 0.3*p05/100;
 
     %% ===============================================
-    %% FIGURA
+    %% HISTOGRAM
     %% ===============================================
 
-    safeName = matlab.lang.makeValidName(char(materiaSel));
+    safeName = matlab.lang.makeValidName( ...
+        char(materiaSel));
 
     pngFile = fullfile( ...
         outFolder,...
@@ -253,29 +271,40 @@ for m = 1:length(materiasUnicas)
 
     fig = figure('Visible','off');
 
-    histogram(n,20,'Normalization','pdf')
+    histogram(n,20,...
+        'Normalization','pdf')
+
     hold on
 
-    xgrid = linspace(min(n),max(n),100);
+    xgrid = linspace( ...
+        min(n),...
+        max(n),...
+        100);
 
     ydens = ksdensity(n,xgrid);
 
     plot(xgrid,ydens,...
-        'r','LineWidth',2)
+        'r',...
+        'LineWidth',2)
 
     xline(media,...
-        'k','LineWidth',2)
+        'k',...
+        'LineWidth',2)
 
     xline(mediana,...
-        'b--','LineWidth',2)
+        'b--',...
+        'LineWidth',2)
+
+    xlabel('Score')
+    ylabel('Probability density')
 
     title(char(materiaSel))
 
     legend( ...
-        'Histograma',...
-        'Densidad',...
-        'Media',...
-        'Mediana',...
+        'Histogram',...
+        'Density',...
+        'Mean',...
+        'Median',...
         'Location','best')
 
     exportgraphics(fig,pngFile)
@@ -283,7 +312,7 @@ for m = 1:length(materiasUnicas)
     close(fig)
 
     %% ===============================================
-    %% DOCUMENTO WORD
+    %% REPORT
     %% ===============================================
 
     append(docG,PageBreak);
@@ -294,113 +323,87 @@ for m = 1:length(materiasUnicas)
 
     append(docG,...
         Heading(3,...
-        'Población'));
+        'Statistics'));
 
     append(docG,...
         Paragraph(sprintf( ...
-        'Total registros: %d', ...
-        total_raw)));
-
-    append(docG,...
-        Paragraph(sprintf( ...
-        'Realizados: %d', ...
-        realizados)));
-
-    append(docG,...
-        Paragraph(sprintf( ...
-        'En blanco: %d', ...
-        en_blanco)));
-
-    append(docG,...
-        Heading(3,...
-        'Estadísticos principales'));
-
-    append(docG,...
-        Paragraph(sprintf( ...
-        'Media: %.2f (%s)', ...
+        'Mean: %.2f (%s)', ...
         media,...
         nivel_medio)));
 
     append(docG,...
         Paragraph(sprintf( ...
-        'Mediana: %.2f', ...
+        'Median: %.2f', ...
         mediana)));
 
     append(docG,...
         Paragraph(sprintf( ...
-        'Desviación estándar: %.2f (%s)', ...
+        'Standard deviation: %.2f (%s)', ...
         stdv,...
         dispersion_txt)));
 
     append(docG,...
         Paragraph(sprintf( ...
-        'Coeficiente de variación: %.2f', ...
+        'Coefficient of variation: %.2f', ...
         cv)));
 
     append(docG,...
         Heading(3,...
-        'Distribución de calificaciones'));
+        'Distribution'));
 
     append(docG,...
         Paragraph(sprintf('0: %.2f%%',p0)));
 
     append(docG,...
-        Paragraph(sprintf('(0–5): %.2f%%',p05)));
+        Paragraph(sprintf('(0-5): %.2f%%',p05)));
 
     append(docG,...
-        Paragraph(sprintf('(5–7): %.2f%%',p57)));
+        Paragraph(sprintf('(5-7): %.2f%%',p57)));
 
     append(docG,...
-        Paragraph(sprintf('(7–9): %.2f%%',p79)));
+        Paragraph(sprintf('(7-9): %.2f%%',p79)));
 
     append(docG,...
-        Paragraph(sprintf('(9–10): %.2f%%',p910)));
+        Paragraph(sprintf('(9-10): %.2f%%',p910)));
 
     append(docG,...
         Paragraph(sprintf('10: %.2f%%',p10)));
 
     append(docG,...
         Heading(3,...
-        'Índice compuesto'));
+        'Composite index'));
 
     append(docG,...
         Paragraph(sprintf( ...
-        'Valor: %.2f', ...
+        'Value: %.2f', ...
         indice)));
 
     if isfile(pngFile)
 
-        append(docG,...
-            Heading(3,...
-            'Figura'));
-
         img = Image(pngFile);
+
         img.Width = '12cm';
 
         p = Paragraph();
+
         p.HAlign = 'center';
 
         append(p,img);
+
         append(docG,p);
 
     end
 
-    append(docG,...
-        Paragraph( ...
-        ['Figura ' num2str(m) ...
-        '. Distribución de ' ...
-        char(materiaSel)]));
-
 end
 
 %% =====================================================
-%% GUARDAR
+%% SAVE
 %% =====================================================
 
 close(docG)
 
 disp(' ')
 disp('========================================')
-disp('INFORME GLOBAL GENERADO')
+disp('GLOBAL REPORT GENERATED')
 disp('========================================')
 disp(finalFile)
