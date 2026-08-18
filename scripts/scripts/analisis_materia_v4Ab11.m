@@ -1,60 +1,64 @@
 clear
 clc
 close all
-% SCRIPT CORRESPONDIENTE A LA FASE 2.
-% FASE 2. Análisis detallado por materia y centro
-% % % Script: analisis_materia_v4Ab11.m------
-%-----------------
-% % % Entrada
-% % % MATERIAS\*
-% % % Salidas
-% % % Dentro de cada materia:
-    % % % RESULTADOS\
-    % % % ├── INFORME_*.docx
-    % % % ├── Resumen_Centros.xlsx
-    % % % └── hist_*.png
-    % % % Qué revisar
-% % % Para cada materia:
-% % % Existe
-% % % Resumen_Centros.xlsx
-% % % Existe
-% % % INFORME_*.docx
-% % % Existe
-% % % hist_*.png
-% % % Importante
-% % % Abrir varios:
-% % % Resumen_Centros.xlsx
-% % % y verificar que aparecen columnas como:
-% % % Plain Text
-% % % Media
-% % % Mediana
-% % % Std
-% % % CV
-% % % IndiceCompuesto
-% % % Ranking
-% % % Ésta será la principal fuente de datos del informe final.
-
 
 import mlreportgen.dom.*
 
 %% =====================================================
-%% CARPETA RAIZ
+%% analisis_materia_v4Ab11.m
+%%
+%% PURPOSE
+%% Detailed subject-by-subject and centre-by-centre analysis.
+%%
+%% INPUT
+%% MATERIAS\
+%%   BIO\
+%%   FIS\
+%%   MAT\
+%%   ...
+%%
+%% OUTPUT
+%% RESULTADOS\
+%%   INFORME_*.docx
+%%   Resumen_Centros.xlsx
+%%   hist_*.png
+%%
+%% The script generates:
+%% - Statistics by centre
+%% - Grade distributions
+%% - Composite performance index
+%% - Rankings
+%% - Automatic Word reports
+%%
 %% =====================================================
 
-rootFolder = ...
-'C:\Users\gonzalea\OneDrive - UNICAN\PAU\2026\extraordinaria\MATERIAS';
+%% =====================================================
+%% ROOT FOLDER
+%% =====================================================
+
+rootFolder = 'MATERIAS';
+
+if ~exist(rootFolder,'dir')
+
+    error('Folder MATERIAS does not exist.')
+
+end
 
 D = dir(rootFolder);
+
 D = D([D.isdir]);
+
 D = D(~ismember({D.name},{'.','..'}));
 
 %% =====================================================
-%% BUCLE DE MATERIAS
+%% SUBJECT LOOP
 %% =====================================================
 
 for k = 1:length(D)
 
-    carpetaMateria = fullfile(rootFolder,D(k).name);
+    carpetaMateria = fullfile( ...
+        rootFolder,...
+        D(k).name);
 
     F = dir(fullfile(carpetaMateria,'*.xlsx'));
 
@@ -62,45 +66,82 @@ for k = 1:length(D)
         continue
     end
 
-    file = fullfile(carpetaMateria,F(1).name);
+    file = fullfile( ...
+        carpetaMateria,...
+        F(1).name);
 
     fprintf('\n====================================\n');
-    fprintf('Procesando %s\n',file);
+    fprintf('Processing %s\n',file);
     fprintf('====================================\n');
 
     %% =================================================
-    %% RESULTADOS
+    %% OUTPUT FOLDER
     %% =================================================
 
-    outFolder = fullfile(carpetaMateria,'RESULTADOS');
+    outFolder = fullfile( ...
+        carpetaMateria,...
+        'RESULTADOS');
 
     if ~exist(outFolder,'dir')
         mkdir(outFolder)
     end
 
     %% =================================================
-    %% LECTURA
+    %% READ EXCEL
     %% =================================================
 
     T = readtable(file);
 
+    %% =================================================
+    %% REQUIRED FIELDS
+    %% =================================================
+
+    camposNecesarios = { ...
+        'CENTRO',...
+        'TIPO',...
+        'CALIFICACION',...
+        'TIENEEXAMEN'};
+
+    for kk = 1:numel(camposNecesarios)
+
+        if ~ismember( ...
+                camposNecesarios{kk}, ...
+                T.Properties.VariableNames)
+
+            error( ...
+                'Missing required field: %s', ...
+                camposNecesarios{kk})
+
+        end
+
+    end
+
+    %% =================================================
+    %% VARIABLES
+    %% =================================================
+
     centro = string(T.CENTRO);
+
     materia = string(T.TIPO);
-    nota = double(T.CALIFICACION);
+
+    nota = str2double( ...
+        string(T.CALIFICACION));
+
     examen = string(T.TIENEEXAMEN);
 
     %% =================================================
-    %% FILTRO
+    %% FILTER
     %% =================================================
 
-    idx = ~isnan(nota) & ...
-          nota>=0 & ...
-          nota<=10 & ...
-          strcmpi(examen,'SI');
+    idx = ...
+        ~isnan(nota) & ...
+        nota >= 0 & ...
+        nota <= 10 & ...
+        strcmpi(strtrim(examen),'SI');
 
-    centro = centro(idx);
+    centro  = centro(idx);
     materia = materia(idx);
-    nota = nota(idx);
+    nota    = nota(idx);
 
     materiaUnica = unique(materia);
 
@@ -111,13 +152,13 @@ for k = 1:length(D)
     nombreMateria = char(materiaUnica(1));
 
     %% =================================================
-    %% CENTROS
+    %% CENTRES
     %% =================================================
 
     centrosUnicos = unique(centro);
 
     %% =================================================
-    %% INFORME WORD
+    %% WORD REPORT
     %% =================================================
 
     docFile = fullfile( ...
@@ -132,21 +173,23 @@ for k = 1:length(D)
 
     doc = Document(docFile,'docx');
 
-    append(doc,Heading(1,...
-        ['INFORME MATERIA: ' nombreMateria]));
+    append(doc,...
+        Heading(1,...
+        ['SUBJECT REPORT: ' nombreMateria]));
 
-    append(doc,Paragraph(sprintf( ...
-        'Número de centros: %d', ...
+    append(doc,...
+        Paragraph(sprintf( ...
+        'Number of centres analysed: %d', ...
         numel(centrosUnicos))));
 
     %% =================================================
-    %% TABLA RESUMEN
+    %% SUMMARY TABLE
     %% =================================================
 
     Resumen = table();
 
     %% =================================================
-    %% LOOP DE CENTROS
+    %% CENTRE LOOP
     %% =================================================
 
     for c = 1:length(centrosUnicos)
@@ -164,54 +207,46 @@ for k = 1:length(D)
         end
 
         %% =============================================
-        %% ESTADISTICOS
+        %% STATISTICS
         %% =============================================
 
-        media = mean(n);
-
+        media   = mean(n);
         mediana = median(n);
+        stdv    = std(n);
 
-        stdv = std(n);
-
-        cv = stdv/media;
+        if media > 0
+            cv = stdv/media;
+        else
+            cv = NaN;
+        end
 
         minimo = min(n);
-
         maximo = max(n);
 
         %% =============================================
-        %% DISTRIBUCION
+        %% DISTRIBUTION
         %% =============================================
 
-        n0 = sum(n==0);
-
-        n05 = sum(n>0 & n<5);
-
-        n57 = sum(n>=5 & n<7);
-
-        n79 = sum(n>=7 & n<9);
-
+        n0   = sum(n==0);
+        n05  = sum(n>0 & n<5);
+        n57  = sum(n>=5 & n<7);
+        n79  = sum(n>=7 & n<9);
         n910 = sum(n>=9 & n<10);
+        n10  = sum(n==10);
 
-        n10 = sum(n==10);
-
-        p0 = 100*n0/NEjercicios;
-
-        p05 = 100*n05/NEjercicios;
-
-        p57 = 100*n57/NEjercicios;
-
-        p79 = 100*n79/NEjercicios;
-
+        p0   = 100*n0/NEjercicios;
+        p05  = 100*n05/NEjercicios;
+        p57  = 100*n57/NEjercicios;
+        p79  = 100*n79/NEjercicios;
         p910 = 100*n910/NEjercicios;
-
-        p10 = 100*n10/NEjercicios;
+        p10  = 100*n10/NEjercicios;
 
         %% =============================================
-        %% INDICE COMPUESTO
+        %% COMPOSITE INDEX
         %% =============================================
 
-        indice = media ...
+        indice = ...
+            media ...
             - 0.10*stdv ...
             + 0.20*p57/100 ...
             + 0.40*p79/100 ...
@@ -220,7 +255,7 @@ for k = 1:length(D)
             - 0.40*p05/100;
 
         %% =============================================
-        %% TABLA RESUMEN
+        %% SUMMARY TABLE
         %% =============================================
 
         fila = table( ...
@@ -243,7 +278,7 @@ for k = 1:length(D)
         Resumen = [Resumen; fila];
 
         %% =============================================
-        %% HISTOGRAMA
+        %% HISTOGRAM
         %% =============================================
 
         safeCentro = matlab.lang.makeValidName( ...
@@ -251,10 +286,10 @@ for k = 1:length(D)
 
         fig = figure('Visible','off');
 
-        histogram(n);
+        histogram(n,20);
 
-        xlabel('Calificación');
-        ylabel('Frecuencia');
+        xlabel('Score');
+        ylabel('Frequency');
 
         title(char(centroSel));
 
@@ -267,48 +302,67 @@ for k = 1:length(D)
         close(fig);
 
         %% =============================================
-        %% INFORME WORD
+        %% WORD REPORT
         %% =============================================
 
         append(doc,PageBreak);
 
-        append(doc,Heading(2,char(centroSel)));
+        append(doc,...
+            Heading(2,...
+            char(centroSel)));
 
-        append(doc,Heading(3,'Población'));
+        append(doc,Heading(3,'Population'));
 
-        append(doc,Paragraph(sprintf( ...
-            'Número de ejercicios tratados: %d', ...
+        append(doc,...
+            Paragraph(sprintf( ...
+            'Number of examinations: %d', ...
             NEjercicios)));
 
-        append(doc,Heading(3,'Estadísticos'));
+        append(doc,Heading(3,'Statistics'));
 
-        append(doc,Paragraph(sprintf('Media: %.2f',media)));
-        append(doc,Paragraph(sprintf('Mediana: %.2f',mediana)));
-        append(doc,Paragraph(sprintf('Desviación estándar: %.2f',stdv)));
-        append(doc,Paragraph(sprintf('Coeficiente de variación: %.2f',cv)));
-        append(doc,Paragraph(sprintf('Mínimo: %.2f',minimo)));
-        append(doc,Paragraph(sprintf('Máximo: %.2f',maximo)));
+        append(doc,...
+            Paragraph(sprintf('Mean: %.2f',media)));
 
-        append(doc,Heading(3,'Distribución (%)'));
+        append(doc,...
+            Paragraph(sprintf('Median: %.2f',mediana)));
 
-        append(doc,Paragraph(sprintf('0: %.2f %%',p0)));
-        append(doc,Paragraph(sprintf('0-5: %.2f %%',p05)));
-        append(doc,Paragraph(sprintf('5-7: %.2f %%',p57)));
-        append(doc,Paragraph(sprintf('7-9: %.2f %%',p79)));
-        append(doc,Paragraph(sprintf('9-10: %.2f %%',p910)));
-        append(doc,Paragraph(sprintf('10: %.2f %%',p10)));
+        append(doc,...
+            Paragraph(sprintf( ...
+            'Standard deviation: %.2f',stdv)));
 
-        append(doc,Heading(3,'Índice compuesto'));
+        append(doc,...
+            Paragraph(sprintf( ...
+            'Coefficient of variation: %.2f',cv)));
 
-        append(doc,Paragraph(sprintf( ...
-            'Valor: %.2f',indice)));
+        append(doc,...
+            Paragraph(sprintf('Minimum: %.2f',minimo)));
+
+        append(doc,...
+            Paragraph(sprintf('Maximum: %.2f',maximo)));
+
+        append(doc,Heading(3,'Distribution (%)'));
+
+        append(doc,Paragraph(sprintf('0 = %.2f',p0)));
+        append(doc,Paragraph(sprintf('0-5 = %.2f',p05)));
+        append(doc,Paragraph(sprintf('5-7 = %.2f',p57)));
+        append(doc,Paragraph(sprintf('7-9 = %.2f',p79)));
+        append(doc,Paragraph(sprintf('9-10 = %.2f',p910)));
+        append(doc,Paragraph(sprintf('10 = %.2f',p10)));
+
+        append(doc,Heading(3,'Composite index'));
+
+        append(doc,...
+            Paragraph(sprintf( ...
+            'Value: %.2f',indice)));
 
         if isfile(pngFile)
 
             img = Image(pngFile);
+
             img.Width = '12cm';
 
             p = Paragraph();
+
             p.HAlign = 'center';
 
             append(p,img);
@@ -348,7 +402,7 @@ for k = 1:length(D)
     Resumen.Ranking = (1:height(Resumen))';
 
     %% =================================================
-    %% EXCEL
+    %% EXCEL OUTPUT
     %% =================================================
 
     excelOut = fullfile( ...
@@ -358,15 +412,19 @@ for k = 1:length(D)
     writetable(Resumen,excelOut);
 
     %% =================================================
-    %% GUARDAR WORD
+    %% SAVE WORD
     %% =================================================
 
     close(doc);
 
-    fprintf('Generado: %s\n',excelOut);
+    fprintf('Generated: %s\n',excelOut);
 
 end
 
+%% =====================================================
+%% END
+%% =====================================================
+
 disp('========================================');
-disp('PROCESO COMPLETADO');
+disp('PROCESS COMPLETED');
 disp('========================================');
