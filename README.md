@@ -1,9 +1,17 @@
 
 # DARA-Exam-Analytics
 
-MATLAB toolkit for analysing examination results obtained from DARA/LECTODARA optical mark recognition systems.
+MATLAB toolkit for analysing examination results obtained from either DARA/LECTODARA optical mark recognition systems or optical readers, generating statistics, rankings, reports, maps and GIS products.
 
 The workflow was originally developed for the Spanish University Entrance Examination (PAU) but can be adapted to any assessment process based on optical mark recognition (OMR).
+
+## Overview
+
+This repository contains a collection of MATLAB scripts developed for the statistical analysis of examination results exported from DARA/LECTODARA optical readers. The workflow was originally developed for the Spanish PAU (University Entrance Examination) but can be adapted to any assessment process based on optical mark recognition (OMR).
+
+
+
+
 
 # Main Features
 
