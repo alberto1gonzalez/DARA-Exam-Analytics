@@ -37,6 +37,7 @@ The scripts currently use the following fields:
 
 Additional fields may be present and are preserved, although they are not required by the current workflow.
 
+
 Example:
 
 CENTRO | TIPO | MATERIA | TIENEEXAMEN | CALIFICACION
@@ -49,6 +50,39 @@ The workflow automatically filters:
 - missing scores,
 - examinations not taken,
 - invalid scores outside the range 0–10.
+
+## Additional fields
+
+In case additional fields are required. The workflow only requires a small subset of fields, but additional columns may be present in the source Excel file.
+
+Examples:
+
+- DNI
+- NOMBRE
+- APELLIDOS
+- CONVOCATORIA
+- TRIBUNAL
+- SEDE
+- MUNICIPIO
+- OBSERVACIONES
+
+These fields are ignored by default.
+
+## How to validate additional fields
+
+Example:
+
+if ismember('DNI',T.Properties.VariableNames)
+
+    dni = string(T.DNI);
+
+end
+
+if ismember('NOMBRE',T.Properties.VariableNames)
+
+    nombre = string(T.NOMBRE);
+
+end
 
 ## Typical workflow
 
