@@ -22,9 +22,9 @@ clc
 %%
 %% OUTPUT
 %% MATERIAS\
-%%   BIO\
-%%   FIS\
-%%   MAT\
+%%   1\
+%%   2\
+%%   3\
 %%   ...
 %%
 %% Each folder contains an Excel file with all records
@@ -44,8 +44,8 @@ file = 'ejemplo_datos_1000_registros.xlsx';
 
 [~,~,raw] = xlsread(file);
 
-headers = string(raw(2,:));
-datos   = raw(3:end,:);
+headers = string(raw(1,:));
+datos   = raw(2:end,:);
 
 headers = matlab.lang.makeValidName(headers);
 
