@@ -130,7 +130,6 @@ examples/
       ## Phase 1. Split Master Excel File
     
           Script:
-          
           ```text
           analisis_materia_a_materia.m
           ```
@@ -147,14 +146,12 @@ examples/
     
     ## Phase 2. Subject and Centre Analysis
     
-          Script:
-          
+          Script: 
           ```text
           analisis_materia_v4Ab11.m
           ```
           
-          Generates:
-          
+          Generates:    
           ```text
           RESULTADOS\
               INFORME_*.*ocx
@@ -163,8 +160,7 @@ examples/
           
     ## Phase 3. Master Statistical Table
     
-          Script:
-          
+          Script:       
           ```text
           analisis_materia_centro_ordinaria3.m
           ```
@@ -177,20 +173,19 @@ examples/
                   resumen_materia_centro.xlsx
           ```
     
-    Contains:
-    
-    - Mean
-    - Median
-    - Standard deviation
-    - Coefficient of variation
-    - Composite index
-    - Global ranking
-    - Subject ranking
+            Contains:
+            
+            - Mean
+            - Median
+            - Standard deviation
+            - Coefficient of variation
+            - Composite index
+            - Global ranking
+            - Subject ranking
     
     ## Phase 4. Institutional Analysis
     
-          Script:
-          
+          Script:      
           ```text
           analisis_pauV2.m
           ```
@@ -208,8 +203,7 @@ examples/
     
     ## Phase 5. Global Subject Analysis
     
-          Script:
-          
+          Script:        
           ```text
           analisis_materia_v4Aa_PARAEXTRAORDINARIA.m
           ```
@@ -224,8 +218,7 @@ examples/
     
     *# Phase 6. Subject Reports with EM* Graphics
     
-          Script:
-          
+          Script:   
           ```text
           analis*s_materia*v4_PARA*XTRAORDINARIA.m
           ```
@@ -242,8 +235,7 @@ examples/
     
     ## Phase 7. Integrated Institutional Report
     
-          Script:
-          
+          Script:          
           ```text
           INFORME_FINAL_NUEVOV2.m
           ```
