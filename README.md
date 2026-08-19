@@ -57,6 +57,7 @@ CENTRO | TIPO | MATERIA | TIENEEXAMEN | CALIFICACION
 CENTRO_A | BIO | Biología | SI | 6.75
 CENTRO_B | BIO | Biología | SI | 7.80
 CENTRO_C | FIS | Física | SI | 5.25
+CENTRO_D | FIS | Física | NO | 
 
 The workflow automatically filters:
 - missing scores,
