@@ -1,29 +1,51 @@
 # DARA-Exam-Analytics
-MATLAB toolkit for analysing Spanish PAU examination results from DARA/LECTODARA optical readers, generating statistics, rankings, reports, maps and GIS products.
+
+MATLAB toolkit for analysing examination results obtained from either DARA/LECTODARA optical mark recognition systems or optical readers, generating statistics, rankings, reports, maps and GIS products.
+
+The workflow was originally developed for the Spanish University Entrance Examination (PAU) but can be adapted to any large-scale assessment process based on optical mark recognition (OMR).
 
 ## Overview
 
 This repository contains a collection of MATLAB scripts developed for the statistical analysis of examination results exported from DARA/LECTODARA optical readers. The workflow was originally developed for the Spanish PAU (University Entrance Examination) but can be adapted to any assessment process based on optical mark recognition (OMR).
 
-## Main features
+---
+
+# Main Features
 
 - Subject-based analysis
 - Centre-based analysis
-- Statistical summaries
 - Composite performance indices
+- Statistical summaries
 - Automatic Word reports
-- Histograms and KDE curves
+- Subject rankings
 - Centre rankings
+- Histograms and density curves
 - GIS outputs (Shapefile)
 - Final institutional report generation
 
-- ## Input data structure
+---
+
+# Required MATLAB Toolboxes
+
+Mandatory:
+
+- MATLAB
+- MATLAB Report Generator
+
+Optional:
+
+- Statistics and Machine Learning Toolbox
+- Mapping Toolbox
+
+---
+
+# Input Data Structure
 
 The workflow is designed to process examination results exported from DARA/LECTODARA optical mark recognition systems.
 
 The input consists of a Microsoft Excel workbook (.xlsx) containing one record per examination and a set of descriptive fields organized by columns.
 
-The scripts currently use the following fields:
+The scripts currently use the following fields (Minimum required fields):
 
 | Field | Description |
 |---------|---------|
@@ -51,9 +73,11 @@ The workflow automatically filters:
 - examinations not taken,
 - invalid scores outside the range 0–10.
 
-## Additional fields
+---
 
-In case additional fields are required. The workflow only requires a small subset of fields, but additional columns may be present in the source Excel file.
+# Additional Fields
+
+Additional fields may be included in the source Excel file without affecting the workflow.
 
 Examples:
 
@@ -66,7 +90,14 @@ Examples:
 - MUNICIPIO
 - OBSERVACIONES
 
-These fields are ignored by default.
+These fields are ignored unless explicitly incorporated into a script.
+
+Example:
+
+```matlab
+if ismember('DNI',T.Properties.VariableNames)
+    dni = string(T.DNI);
+end
 
 ## How to validate additional fields
 In case these fields are required, it is advisable to include this validation routine in the scripts
@@ -94,6 +125,18 @@ end
 5. Generate subject-level reports.
 6. Generate the final integrated institutional report.
 
+## Workflow SCRIPST USED
+
+1. `analisis_materia_a_materia.m`
+2. `analisis_materia_v4Ab11.m`
+3. `analisis_materia_centro_ordinaria3.m`
+4. `analisis_pauV2.m`
+5. `analisis_materia_v4Aa_PARAEXTRAORDINARIA.m`
+6. `analisis_materia_v4_PARAEXTRAORDINARIA.m`
+7. `INFORME_FINAL_NUEVOV2.m`
+
+
+
 ## Workflow outputs
 The toolkit generates:
 - Subject-level reports (.docx)
@@ -105,16 +148,6 @@ The toolkit generates:
 - GIS products (.shp)
 - Final institutional reports
 
-
-## Workflow SCRIPST USED
-
-1. `analisis_materia_a_materia.m`
-2. `analisis_materia_v4Ab11.m`
-3. `analisis_materia_centro_ordinaria3.m`
-4. `analisis_pauV2.m`
-5. `analisis_materia_v4Aa_PARAEXTRAORDINARIA.m`
-6. `analisis_materia_v4_PARAEXTRAORDINARIA.m`
-7. `INFORME_FINAL_NUEVO.m`
 
 ## Requirements
 
