@@ -270,7 +270,11 @@ All scripts included in the repository were tested successfully using the synthe
 
 Example outputs are available in:
 
+# Example Outputs
 
+The folder:
+
+```text
 outputs_example/
 │
 ├── ranking_centros.xlsx
