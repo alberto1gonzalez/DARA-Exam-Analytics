@@ -69,6 +69,7 @@ Examples:
 These fields are ignored by default.
 
 ## How to validate additional fields
+In case these fields are required, it is advisable to include this validation routine in the scripts
 
 Example:
 
