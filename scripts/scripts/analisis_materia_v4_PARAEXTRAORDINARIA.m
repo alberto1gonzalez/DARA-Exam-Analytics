@@ -50,8 +50,8 @@ end
 
 [~,~,raw] = xlsread(file);
 
-headers = string(raw(2,:));
-datos   = raw(3:end,:);
+headers = string(raw(1,:));
+datos   = raw(2:end,:);
 
 headers = matlab.lang.makeValidName(headers);
 
