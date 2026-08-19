@@ -116,6 +116,8 @@ if ismember('NOMBRE',T.Properties.VariableNames)
 
 end
 
+---
+
 ## Typical workflow
 
 1. Split the master Excel file by subject.
@@ -169,3 +171,4 @@ This repository does not contain real examination data. Users must provide their
 ## License
 
 MIT License
+
