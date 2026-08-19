@@ -260,6 +260,28 @@ The toolkit generates:
 - GIS products (.shp)
 - Final institutional reports
 ``
+# Validation Status
+
+Validated using:
+
+examples/ejemplo_datos_1000_registros.xlsx
+
+All scripts included in the repository were tested successfully using the synthetic dataset provided.
+
+Example outputs are available in:
+
+
+outputs_example/
+│
+├── ranking_centros.xlsx
+├── resumen_materia_centro.xlsx
+├── histograma_global.png
+├── mapa_centros.png
+├── INFORME_GLOBAL.docx
+├── INFORME_GLOBAL_EXTRAORDINARIA_V2.docx
+└── ejemplos_histogramas/
+
+
 
 ## License
 
